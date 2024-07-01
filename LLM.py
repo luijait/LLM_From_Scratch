@@ -106,7 +106,7 @@ def entrenar_modelo(modelo, cargador_entrenamiento, criterio, optimizador, dispo
         loss_total += loss.item()
     return loss_total / len(cargador_entrenamiento)
 
-# Función para gen texto nuevo
+# Función para gen texto new
 def gen_texto(modelo, dataset, texto_inicial, longitud_max=100):
     modelo.eval()
     dispositivo = next(modelo.parameters()).device
@@ -251,9 +251,9 @@ refranes = [
     "Quien ríe el último, ríe mejor.",
     "Vísteme despacio que tengo prisa.",
 ]
-refranes = refranes[:len(refranes)//2]
-len_seq = 32
-batch_size = 16
+refranes = refranes * 2
+len_seq = 16
+batch_size = 20
 dataset = DatasetRefranes(refranes, len_seq)
 cargador_entrenamiento = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
@@ -317,13 +317,13 @@ for epoch in range(num_epochs):
         fotogramas.append(fig)
         plt.close(fig)
 
-# Generación de nuevos refranes
+
 print("\nGenerando nuevos refranes:")
 for _ in range(5):
-    texto_inicial = "El que "
+    texto_inicial = "Quien ríe "
     try:
-        nuevo_refran = gen_texto(modelo, dataset, texto_inicial)
-        print(nuevo_refran)
+        new_refran = gen_texto(modelo, dataset, texto_inicial)
+        print(new_refran)
     except KeyError as e:
         print(f"Error al gen texto: {e}")
         print("Asegúrate de que todos los caracteres en texto_inicial estén en el vocabulario del dataset.")
