@@ -1,3 +1,5 @@
+![Época 10](notajo.png)
+
 # Proyecto basico de (LLM)
 
 Este repositorio contiene una implementación básica de un Modelo de Lenguaje (LLM) utilizando PyTorch. El proyecto tiene como objetivo demostrar los componentes fundamentales de un LLM a bajo nivel, sirviendo como recurso educativo para comprender la arquitectura y el proceso de entrenamiento de estos modelos.
@@ -101,7 +103,6 @@ Después del entrenamiento, el modelo puede generar nuevo texto:
 ## Visualizaciones
 
 Las imágenes `epoch_*.png` muestran el estado de los parámetros del modelo en diferentes épocas de entrenamiento. Estas visualizaciones proporcionan insights sobre cómo evolucionan los parámetros durante el aprendizaje.
-
 ![Época 10](epoch_10.png)
 ![Época 20](epoch_20.png)
 ![Época 30](epoch_30.png)
