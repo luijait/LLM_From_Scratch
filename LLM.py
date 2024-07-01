@@ -255,7 +255,7 @@ refranes = [
     "Quien ríe el último, ríe mejor.",
     "Vísteme despacio que tengo prisa.",
 ]
-refranes = refranes * 2
+refranes = refranes * 5
 len_seq = 16
 batch_size = 20
 dataset = DatasetRefranes(refranes, len_seq)
@@ -324,7 +324,7 @@ for epoch in range(num_epochs):
 
 print("\nGenerando nuevos refranes:")
 for _ in range(5):
-    texto_inicial = "Quien ríe "
+    texto_inicial = "No hay "
     try:
         new_refran = gen_texto(modelo, dataset, texto_inicial)
         print(new_refran)
