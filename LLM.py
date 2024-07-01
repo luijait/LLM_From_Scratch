@@ -6,6 +6,10 @@ from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 import networkx as nx
 
+#NOTA
+#Esto es solo un ejemplo teorico poco practico y muy basico para entender los componentes a nivel bajo de un LLM
+
+
 # Codificación Posicional: Añade información sobre la posición de cada token en la secuencia
 class EncodingPosicional(nn.Module):
     def __init__(self, dim_modelo, longitud_max=5000):
