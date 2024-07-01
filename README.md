@@ -1,4 +1,4 @@
-# Proyecto Simple de Modelo de Lenguaje (LLM)
+# Proyecto basico de (LLM)
 
 Este repositorio contiene una implementación básica de un Modelo de Lenguaje (LLM) utilizando PyTorch. El proyecto tiene como objetivo demostrar los componentes fundamentales de un LLM a bajo nivel, sirviendo como recurso educativo para comprender la arquitectura y el proceso de entrenamiento de estos modelos.
 
