@@ -9,6 +9,9 @@ import networkx as nx
 #NOTA
 #Esto es solo un ejemplo teorico poco practico y muy basico para entender los componentes a nivel bajo de un LLM
 
+# Verificar si hay GPU disponible
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Usando device: {device}")
 
 # Codificación Posicional: Añade información sobre la posición de cada token en la secuencia
 class EncodingPosicional(nn.Module):
@@ -52,7 +55,7 @@ class ModeloTransformer(nn.Module):
 # El número de parámetros en el modelo se define por la arquitectura y los hiperparámetros.
 # Para ver el número de parámetros, podemos usar:
 #
-# modelo = ModeloTransformer(num_tokens, dim_modelo, num_cabezas, dim_oculta, num_capas)
+# modelo = ModeloTransformer(num_tokens, dim_modelo, num_cabezas, dim_oculta, num_capas).to(device)
 # total_params = sum(p.numel() for p in modelo.parameters())
 # print(f"Número total de parámetros: {total_params}")
 #
@@ -93,12 +96,12 @@ class DatasetRefranes(Dataset):
         return torch.tensor(self.datos[idx][0]), torch.tensor(self.datos[idx][1])
 
 # Función de entrenamiento del modelo
-def entrenar_modelo(modelo, cargador_entrenamiento, criterio, optimizador, dispositivo):
+def entrenar_modelo(modelo, cargador_entrenamiento, criterio, optimizador, device):
     modelo.train()
     loss_total = 0
     for src, tgt in cargador_entrenamiento:
-        src, tgt = src.to(dispositivo), tgt.to(dispositivo)
-        mascara_src = gen_mascara_subsecuente(src.size(1)).to(dispositivo)
+        src, tgt = src.to(device), tgt.to(device)
+        mascara_src = gen_mascara_subsecuente(src.size(1)).to(device)
         
         optimizador.zero_grad()
         salida = modelo(src, mascara_src)
@@ -111,32 +114,28 @@ def entrenar_modelo(modelo, cargador_entrenamiento, criterio, optimizador, dispo
     return loss_total / len(cargador_entrenamiento)
 
 # Función para gen texto new
-def gen_texto(modelo, dataset, texto_inicial, longitud_max=100):
+def gen_texto(modelo, dataset, texto_inicial, device, longitud_max=100):
     modelo.eval()
-    dispositivo = next(modelo.parameters()).device
-    seq_entrada = torch.tensor([dataset.char_a_idx[ch] for ch in texto_inicial]).unsqueeze(0).to(dispositivo)
+    seq_entrada = torch.tensor([dataset.char_a_idx[ch] for ch in texto_inicial]).unsqueeze(0).to(device)
     texto_generado = texto_inicial
-
 
     with open('parameters.txt', 'w') as f:
         for name, param in modelo.named_parameters():
             f.write(f"{name}: {param.data}\n")
-
 
     with open('table.txt', 'w') as f:
         f.write("Posición\tCarácter\tProbabilidad\n")
 
     with torch.no_grad():
         for pos in range(longitud_max - len(texto_inicial)):
-            mascara_src = gen_mascara_subsecuente(seq_entrada.size(1)).to(dispositivo)
+            mascara_src = gen_mascara_subsecuente(seq_entrada.size(1)).to(device)
             salida = modelo(seq_entrada, mascara_src)
             probabilidades = torch.softmax(salida[:, -1, :], dim=-1)
             idx_siguiente_char = torch.multinomial(probabilidades, 1).item()
             siguiente_char = dataset.idx_a_char[idx_siguiente_char]
             texto_generado += siguiente_char
-            seq_entrada = torch.cat([seq_entrada, torch.tensor([[idx_siguiente_char]]).to(dispositivo)], dim=1)
+            seq_entrada = torch.cat([seq_entrada, torch.tensor([[idx_siguiente_char]]).to(device)], dim=1)
             
-           
             top_k = 5
             top_probs, top_indices = torch.topk(probabilidades, top_k)
             print("\nTokens más probables:")
@@ -151,7 +150,6 @@ def gen_texto(modelo, dataset, texto_inicial, longitud_max=100):
                 break
 
     return texto_generado
-
 # Configuración y entrenamiento
 refranes = [
     "Quien madruga con el sol, cosecha éxito y honor.",
@@ -255,13 +253,13 @@ refranes = [
     "Quien ríe el último, ríe mejor.",
     "Vísteme despacio que tengo prisa.",
 ]
-refranes = refranes * 5
+refranes = refranes * 5 
 len_seq = 16
 batch_size = 20
 dataset = DatasetRefranes(refranes, len_seq)
 cargador_entrenamiento = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-dispositivo = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tamano_vocabulario = len(dataset.caracteres)
 dim_modelo = 128
 num_cabezas = 4
@@ -269,8 +267,8 @@ dim_oculta = 256
 num_capas = 2
 tasa_dropout = 0.2
 
-modelo = ModeloTransformer(tamano_vocabulario, dim_modelo, num_cabezas, dim_oculta, num_capas, tasa_dropout).to(dispositivo)
-criterio = nn.CrossEntropyLoss()
+modelo = ModeloTransformer(tamano_vocabulario, dim_modelo, num_cabezas, dim_oculta, num_capas, tasa_dropout).to(device)
+criterio = nn.CrossEntropyLoss().to(device)
 optimizador = optim.Adam(modelo.parameters(), lr=0.001)
 
 # Mostrar el número total de parámetros del modelo
@@ -311,7 +309,7 @@ fotogramas = []
 
 num_epochs = 100
 for epoch in range(num_epochs):
-    loss = entrenar_modelo(modelo, cargador_entrenamiento, criterio, optimizador, dispositivo)
+    loss = entrenar_modelo(modelo, cargador_entrenamiento, criterio, optimizador, device)
     if (epoch + 1) % 10 == 0:
         print(f'Época {epoch+1}/{num_epochs}, Pérdida: {loss:.4f}')
     
@@ -326,7 +324,7 @@ print("\nGenerando nuevos refranes:")
 for _ in range(5):
     texto_inicial = "No hay "
     try:
-        new_refran = gen_texto(modelo, dataset, texto_inicial)
+        new_refran = gen_texto(modelo, dataset, texto_inicial, device)
         print(new_refran)
     except KeyError as e:
         print(f"Error al gen texto: {e}")
